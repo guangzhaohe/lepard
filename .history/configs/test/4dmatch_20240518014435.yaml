@@ -104,10 +104,10 @@ folder: -final
 batch_size: 1
 num_workers: 10
 augment_noise: 0.002
-data_root: 4dmatch
+data_root: /path/to/4DMatch
 split: {
   "train": split/train,
   "val": split/val,
- "test": split/4DMatch
-  # "test": split/4DLoMatch
+#  "test": split/4DMatch
+  "test": split/4DLoMatch
 }

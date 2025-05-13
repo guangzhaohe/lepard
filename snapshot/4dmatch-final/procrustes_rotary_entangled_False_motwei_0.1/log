@@ -1,0 +1,4 @@
+#parameters 37.545351 M
+Successfully load pretrained model from pretrained/4dmatch/model_best_loss.pth!
+Current best loss 1.301426887512207
+Current best recall -100000.0

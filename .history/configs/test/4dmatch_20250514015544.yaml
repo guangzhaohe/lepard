@@ -108,6 +108,6 @@ data_root: 4dmatch
 split: {
   "train": split/train,
   "val": split/val,
- "test": split/4DMatch
-  # "test": split/4DLoMatch
+#  "test": split/4DMatch
+  "test": split/4DLoMatch
 }
