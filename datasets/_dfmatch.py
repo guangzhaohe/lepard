@@ -12,14 +12,10 @@ HMN_intrin = np.array( [443, 256, 443, 250 ])
 cam_intrin = np.array( [443, 256, 443, 250 ])
 
 from lib.benchmark_utils import to_o3d_pcd, to_tsfm, get_correspondences
+from lib.datasets.df_utils import DfaustTrain
 
 
-# save all arguments to numpy .npy file
-def savenp(filename, **kwargs):
-    np.save(filename, {k: v for k, v in kwargs.items()})
-
-
-class _4DMatch(Dataset):
+class _DFMatch(Dataset):
 
     def __init__(self, config, split, data_augmentation=True):
         super(_4DMatch, self).__init__()
@@ -73,17 +69,12 @@ class _4DMatch(Dataset):
 
 
         # get transformation
-        rot = entry['rot']  # 3,3
-        trans = entry['trans']  # 3,1
-        s2t_flow = entry['s2t_flow']  # n_src, 3
-        src_pcd = entry['s_pc']  # n_src, 3
-        tgt_pcd = entry['t_pc']  # n_tar, 3
-        correspondences = entry['correspondences'] # obtained with search radius 0.015 m pairs of src-tar pairs
-
-        from cvtb import vis
-        breakpoint()
-        savenp(rot=rot, trans=trans, s2t_flow=s2t_flow, src_pcd=src_pcd, tgt_pcd=tgt_pcd, correspondences=correspondences)
-
+        rot = entry['rot']
+        trans = entry['trans']
+        s2t_flow = entry['s2t_flow']
+        src_pcd = entry['s_pc']
+        tgt_pcd = entry['t_pc']
+        correspondences = entry['correspondences'] # obtained with search radius 0.015 m
         src_pcd_deformed = src_pcd + s2t_flow
         if "metric_index" in entry:
             metric_index = entry['metric_index'].squeeze()
@@ -167,7 +158,7 @@ if __name__ == '__main__':
         return '_'.join([str(i) for i in seq])
     yaml.add_constructor('!join', join)
 
-    config = "/home/idarc/hgz/lepard/configs/test/4dmatch.yaml"
+    config = "/home/liyang/workspace/Regformer/configs/train/4dmatch.yaml"
     with open(config,'r') as f:
         config = yaml.load(f, Loader=yaml.Loader)
 
@@ -177,10 +168,10 @@ if __name__ == '__main__':
 
     for i in range (len(D)):
 
-        # try:
-        if i%1000 == 0 :
-            print (i,"/",len(D))
-            D.__getitem__(i, debug=False)
-        # except:
+        try:
+            if i%1000 == 0 :
+                print (i,"/",len(D))
+            D.__getitem__(i, debug=True)
+        except:
             # print(i, "/", len(D))
-            # pass
+            pass
