@@ -833,14 +833,14 @@ if __name__ == '__main__':
         root_dir='/home/idarc/hgz/SuperGraph/DeformationPyramid/data/DFAUST',
         split='test',
     )
-    data = df_testset[0]
+    data = df_trainset[0]
     src_pcd = data['points_mesh']
     tgt_pcd = data['points']
     gt_tracks = data['tracks']
     # from cvtb import vis
     # vis.pcds([tgt_pcd[0], gt_tracks[0]])
 
-    np.save('tmp.npy', {
+    np.save('dftmp.npy', {
         'src_pcd': src_pcd,
         'tgt_pcd': tgt_pcd,
         'gt_tracks': gt_tracks
