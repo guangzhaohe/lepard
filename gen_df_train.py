@@ -4,6 +4,7 @@ from typing import List, Dict
 import torch
 import numpy as np
 from cvtb import vis
+
 from knn_cuda import KNN
 
 
@@ -65,6 +66,9 @@ def generate_training_labels(data: Dict, knn: int = 4):
     src_indices = get_knn_in_t(src_pcd, tgt_pcd, knn=knn).flatten()
     tgt_indices = generate_repeated_array(len(tgt_pcd), repeat_time=knn)
     corr = np.stack([src_indices, tgt_indices]).transpose((1, 0))  # n_corr, 2
+
+    # from cvtb import vis
+    # vis.pcd(np.stack([src_pcd[corr[:, 0]], tgt_pcd[corr[:, 1]]]), fps=1)
     
     return {
         'rot': rot,

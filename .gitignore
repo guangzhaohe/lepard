@@ -8,3 +8,4 @@ snapshot
 .history
 data
 test.py
+KNN_CUDA
