@@ -1,0 +1,7 @@
+*.pyc
+*.pth
+.idea
+
+4dmatch
+pretrained
+snapshot
