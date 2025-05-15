@@ -619,6 +619,12 @@ def get_datasets(config, only_test=False):
         else:
             raise NotImplementedError    
         return test_set
+    
+    
+def prepare_data(data_batch, config, neighborhood_limits=None):
+    collate_fn = partial(collate_fn_4dmatch, config=config['kpfcn_config'], neighborhood_limits=neighborhood_limits)
+    data = collate_fn([data_batch])[0]
+    return data  # Ready for the network
 
 
 def get_dataloader(dataset, config, shuffle=True, neighborhood_limits=None):

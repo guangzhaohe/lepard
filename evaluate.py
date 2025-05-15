@@ -13,6 +13,14 @@ from lib.tictok import Timers
 from configs.models import architectures
 from torch import optim
 import numpy as np
+from datasets.df_utils import DfaustTrain
+from datasets.dataloader import prepare_data
+from datasets.gen_df_train import generate_training_labels
+from typing import Dict, List
+from datasets._dfmatch import NUM_KNN
+from tqdm import tqdm
+from models.matching import Matching as CM
+from models.loss import MatchMotionLoss as MML
 
 
 setup_seed(0)
@@ -24,6 +32,31 @@ def join(loader, node):
 
 
 yaml.add_constructor('!join', join)
+
+
+# Convert a pair of src tar data output to lepard's labels
+def from_src_tar_to_training_labels(
+    src_pcd: np.ndarray, 
+    tar_pcd: np.ndarray,
+) -> Dict:
+    tmp_data = {
+        'points_mesh': src_pcd,  # n_src, 3
+        'points': tar_pcd[None],  # 1, n_tar, 3
+        'tracks': src_pcd[None],  # 1, n_src, 3 -> placeholder
+    }
+    training_labels = generate_training_labels(tmp_data, knn=NUM_KNN)
+    return training_labels
+
+
+def to_cuda(inputs: Dict, device: str = 'cuda'):
+    for k, v in inputs.items():
+        if type(v) == list:
+            inputs[k] = [item.to(device) for item in v]
+        elif type(v) in [ dict, float, type(None), np.ndarray]:
+            pass
+        else:
+            inputs[k] = v.to(device)
+    return inputs
 
 
 if __name__ == '__main__':
@@ -97,6 +130,7 @@ if __name__ == '__main__':
     config.test_loader = None
     config.val_loader = None
 
+    # Pretrained weights will be loaded here
     trainer = get_trainer(config)
 
     # example_input = next(iter(config.test_loader))
@@ -110,5 +144,39 @@ if __name__ == '__main__':
         else:
             inputs[k] = v.to('cuda')
 
-    breakpoint()
+    df_dataset = DfaustTrain(split='test')
+    
+    for idx, data_batch in enumerate(tqdm(df_dataset)):
+        
+        # Get what we need
+        src_pcd = data_batch['points_mesh']  # n_src, 3
+        tar_pcds = data_batch['points']  # n_f, n_tar, 3
+        
+        # This will only be used for evauation
+        gt_tracks = data_batch['tracks']  # n_f, n_src, 3
+        
+        n_f = len(tar_pcds)
+        
+        for f in range(n_f):
+            
+            if f == 0:  # src is now provided
+                src_pcd_f = src_pcd
+                tar_pcd_f = tar_pcds[f]
+                
+                labels: Dict = from_src_tar_to_training_labels(src_pcd_f, tar_pcd_f)  # Dict to be collated
+                data_f = prepare_data(labels, config=config, neighborhood_limits=neighborhood_limits)
+                data_f_cuda = to_cuda(data_f)
+                breakpoint()
+                output = trainer.model(data_f_cuda)
+                match_pred, _, _ = CM.get_match(data['conf_matrix_pred'], thr=conf_threshold, mutual=True)
+                
+                
+            else:  # src is now from previous estimations
+            
+            data = prepare_data(data_batch, config=config, neighborhood_limits=neighborhood_limits)
+            breakpoint()
+            
+        # TODO: Evaluate here
+        
+    
     trainer.test()
