@@ -1,4 +1,0 @@
-# ninja log v5
-1	18903	1747312600549927223	/home/idarc/hgz/lepard/extern/Nonrigid-ICP-Pytorch/cxx/build/temp.linux-x86_64-cpython-311/home/idarc/hgz/lepard/extern/Nonrigid-ICP-Pytorch/cxx/main.o	c4ad290392a1a3d8
-1	19771	1747312601422966476	/home/idarc/hgz/lepard/extern/Nonrigid-ICP-Pytorch/cxx/build/temp.linux-x86_64-cpython-311/home/idarc/hgz/lepard/extern/Nonrigid-ICP-Pytorch/cxx/cpu/image_proc.o	6937fa428f4a1bbf
-0	20441	1747312602090996492	/home/idarc/hgz/lepard/extern/Nonrigid-ICP-Pytorch/cxx/build/temp.linux-x86_64-cpython-311/home/idarc/hgz/lepard/extern/Nonrigid-ICP-Pytorch/cxx/cpu/graph_proc.o	be66b16ad58f1bb7
