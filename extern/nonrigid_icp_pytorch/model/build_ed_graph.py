@@ -63,9 +63,9 @@ def build_deformation_graph(
     weights = weights / (weights.sum(dim=1, keepdim=True) + 1e-8)  # normalize
 
     return {
-        'graph_nodes': graph_nodes,
-        'graph_edges': graph_edges,
-        'graph_edges_weights': graph_edges_weights,
-        'point_anchors': anchors,
-        'point_weights': weights
+        'graph_nodes': torch.from_numpy(graph_nodes).long(),
+        'graph_edges': torch.from_numpy(graph_edges),
+        'graph_edges_weights': torch.from_numpy(graph_edges_weights),
+        'point_anchors': torch.from_numpy(anchors).long(),
+        'point_weights': torch.from_numpy(weights),
     }
