@@ -22,7 +22,6 @@ from tqdm import tqdm
 from models.matching import Matching as CM
 from models.loss import MatchMotionLoss as MML
 from cvtb import vis
-from extern.nonrigid_icp_pytorch.model.registration import Registration
 
 
 setup_seed(0)

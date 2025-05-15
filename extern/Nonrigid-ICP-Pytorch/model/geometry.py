@@ -1,11 +1,9 @@
 import torch
 import numpy as np
-try:
-    import MVRegC
-    import open3d as o3d
-except:
-    # print('MVRegC not available')
-    print('Severe error')
+import MVRegC
+import open3d as o3d
+
+
 
 
 def ED_warp(x, g, R, t, w):

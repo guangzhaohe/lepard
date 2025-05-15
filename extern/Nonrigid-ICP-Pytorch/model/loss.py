@@ -266,8 +266,8 @@ def silhouette_cost(x, y):
     return silh_loss
 
 def landmark_cost(x, y, landmarks):
-    x = x [ landmarks[:, 0] ]
-    y = y [ landmarks[:, 1] ]
+    x = x [ landmarks[0] ]
+    y = y [ landmarks[1] ]
     loss = torch.mean(
         torch.sum( (x-y)**2, dim=-1 ))
     return loss
