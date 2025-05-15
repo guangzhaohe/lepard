@@ -157,15 +157,15 @@ if __name__ == '__main__':
     trainer = get_trainer(config)
 
     # example_input = next(iter(config.test_loader))
-    inputs = np.load('tmp.npy', allow_pickle=True).item()
+    # inputs = np.load('tmp.npy', allow_pickle=True).item()
 
-    for k, v in inputs.items():
-        if type(v) == list:
-            inputs[k] = [item.to('cuda') for item in v]
-        elif type(v) in [ dict, float, type(None), np.ndarray]:
-            pass
-        else:
-            inputs[k] = v.to('cuda')
+    # for k, v in inputs.items():
+    #     if type(v) == list:
+    #         inputs[k] = [item.to('cuda') for item in v]
+    #     elif type(v) in [ dict, float, type(None), np.ndarray]:
+    #         pass
+    #     else:
+    #         inputs[k] = v.to('cuda')
 
     df_dataset = DfaustTrain(
         root_dir=ROOT_DIR_DF,
@@ -217,12 +217,12 @@ if __name__ == '__main__':
             tar_lm = t_pcd[coarse_match_pred[:, 2]]
 
             # Let's make sure landmarks align with original src input and output
-            np.save('tmp.npy', {
-                'og_src': src_pcd_f, 
-                'og_tar': tar_pcd_f, 
-                'src_lm': src_lm, 
-                'tar_lm': tar_lm,
-            })
+            # np.save('tmp.npy', {
+            #     'og_src': src_pcd_f, 
+            #     'og_tar': tar_pcd_f, 
+            #     'src_lm': src_lm, 
+            #     'tar_lm': tar_lm,
+            # })
 
             breakpoint()
             registered_pcds.append(output['registered_pcd'])
