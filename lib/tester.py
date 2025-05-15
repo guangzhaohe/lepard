@@ -224,30 +224,6 @@ class _4DMatchTester(Trainer):
             print( "conf_threshold", thr,  "NFMR:", fmr, " Inlier rate:", ir, "Number sample:", nspl)
             print( "time costs:", time.time() - start)
 
-    def register(
-        self, 
-        src_pcd: torch.Tensor,  # n_src, 3 
-        tar_pcd: torch.Tensor,  # n_tar, 3
-    ) -> torch.Tensor:  # n_src, 3
-        
-        data = []  # 9 input, 4 used
-
-        for k, v in inputs.items():
-            if type(v) == list:
-                inputs[k] = [item.to(self.device) for item in v]
-            elif type(v) in [ dict, float, type(None), np.ndarray]:
-                pass
-            else:
-                inputs[k] = v.to(self.device)
-
-        data = self.model(inputs, timers=self.timers)  # [N1, C1], [N2, C2]
-
-        match_pred, _, _ = CM.get_match(data['conf_matrix_pred'], thr=conf_threshold, mutual=True)
-        ir = MML.compute_inlier_ratio(match_pred, data, inlier_thr=inlier_thr, s2t_flow=data['coarse_flow'][0][None] )[0]
-
-        nrfmr = compute_nrfmr(match_pred, data, recall_thr=recall_thr)
-
-
     def test_thr(self, conf_threshold=None):
 
         num_iter = math.ceil(len(self.loader['test'].dataset) // self.loader['test'].batch_size)
