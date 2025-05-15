@@ -1,0 +1,8 @@
+setup.py
+/home/idarc/hgz/lepard/extern/Nonrigid-ICP-Pytorch/cxx/./main.cpp
+/home/idarc/hgz/lepard/extern/Nonrigid-ICP-Pytorch/cxx/./cpu/graph_proc.cpp
+/home/idarc/hgz/lepard/extern/Nonrigid-ICP-Pytorch/cxx/./cpu/image_proc.cpp
+MVRegC.egg-info/PKG-INFO
+MVRegC.egg-info/SOURCES.txt
+MVRegC.egg-info/dependency_links.txt
+MVRegC.egg-info/top_level.txt

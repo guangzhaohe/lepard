@@ -1,0 +1,26 @@
+ninja_required_version = 1.3
+cxx = c++
+
+cflags = -pthread -B /home/idarc/anaconda3/envs/easyvolcap/compiler_compat -DNDEBUG -fwrapv -O2 -Wall -fPIC -O2 -isystem /home/idarc/anaconda3/envs/easyvolcap/include -fPIC -O2 -isystem /home/idarc/anaconda3/envs/easyvolcap/include -fPIC -I/home/idarc/anaconda3/envs/easyvolcap/lib/python3.11/site-packages/pybind11/include -I/home/idarc/anaconda3/envs/easyvolcap/lib/python3.11/site-packages/pybind11/include -I/home/idarc/hgz/lepard/extern/Nonrigid-ICP-Pytorch/external/eigen3 -I/home/idarc/hgz/lepard/extern/Nonrigid-ICP-Pytorch/cxx/. -I/home/idarc/anaconda3/envs/easyvolcap/lib/python3.11/site-packages/torch/include -I/home/idarc/anaconda3/envs/easyvolcap/lib/python3.11/site-packages/torch/include/torch/csrc/api/include -I/home/idarc/anaconda3/envs/easyvolcap/lib/python3.11/site-packages/torch/include/TH -I/home/idarc/anaconda3/envs/easyvolcap/lib/python3.11/site-packages/torch/include/THC -I/home/idarc/anaconda3/envs/easyvolcap/include/python3.11 -c
+post_cflags = -O3 -Wall -shared -std=c++17 -fPIC -fopenmp -DTORCH_API_INCLUDE_EXTENSION_H '-DPYBIND11_COMPILER_TYPE="_gcc"' '-DPYBIND11_STDLIB="_libstdcpp"' '-DPYBIND11_BUILD_ABI="_cxxabi1011"' -DTORCH_EXTENSION_NAME=MVRegC -D_GLIBCXX_USE_CXX11_ABI=0
+cuda_dlink_post_cflags = 
+ldflags = 
+
+rule compile
+  command = $cxx -MMD -MF $out.d $cflags -c $in -o $out $post_cflags
+  depfile = $out.d
+  deps = gcc
+
+
+
+
+
+build /home/idarc/hgz/lepard/extern/Nonrigid-ICP-Pytorch/cxx/build/temp.linux-x86_64-cpython-311/home/idarc/hgz/lepard/extern/Nonrigid-ICP-Pytorch/cxx/./cpu/graph_proc.o: compile /home/idarc/hgz/lepard/extern/Nonrigid-ICP-Pytorch/cxx/cpu/graph_proc.cpp
+build /home/idarc/hgz/lepard/extern/Nonrigid-ICP-Pytorch/cxx/build/temp.linux-x86_64-cpython-311/home/idarc/hgz/lepard/extern/Nonrigid-ICP-Pytorch/cxx/./cpu/image_proc.o: compile /home/idarc/hgz/lepard/extern/Nonrigid-ICP-Pytorch/cxx/cpu/image_proc.cpp
+build /home/idarc/hgz/lepard/extern/Nonrigid-ICP-Pytorch/cxx/build/temp.linux-x86_64-cpython-311/home/idarc/hgz/lepard/extern/Nonrigid-ICP-Pytorch/cxx/./main.o: compile /home/idarc/hgz/lepard/extern/Nonrigid-ICP-Pytorch/cxx/main.cpp
+
+
+
+
+
+
