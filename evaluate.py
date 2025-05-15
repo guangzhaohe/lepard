@@ -157,24 +157,26 @@ if __name__ == '__main__':
         
         n_f = len(tar_pcds)
         
+        registered_pcds = []  # length = n_f
+        
         for f in range(n_f):
             
             if f == 0:  # src is now provided
                 src_pcd_f = src_pcd
                 tar_pcd_f = tar_pcds[f]
-                
-                labels: Dict = from_src_tar_to_training_labels(src_pcd_f, tar_pcd_f)  # Dict to be collated
-                data_f = prepare_data(labels, config=config, neighborhood_limits=neighborhood_limits)
-                data_f_cuda = to_cuda(data_f)
-                breakpoint()
-                output = trainer.model(data_f_cuda)
-                match_pred, _, _ = CM.get_match(data['conf_matrix_pred'], thr=conf_threshold, mutual=True)
-                
-                
             else:  # src is now from previous estimations
-            
-            data = prepare_data(data_batch, config=config, neighborhood_limits=neighborhood_limits)
+                src_pcd_f = registered_pcds[-1]
+                tar_pcd_f = tar_pcds[f]
+                
+            labels: Dict = from_src_tar_to_training_labels(src_pcd_f, tar_pcd_f)  # Dict to be collated
+            data_f = prepare_data(labels, config=config, neighborhood_limits=neighborhood_limits)
+            data_f_cuda = to_cuda(data_f)
             breakpoint()
+            output = trainer.model(data_f_cuda)
+            # match_pred, _, _ = CM.get_match(data['conf_matrix_pred'], thr=conf_threshold, mutual=True)
+            
+            breakpoint()
+            registered_pcds.append(output['registered_pcd'])
             
         # TODO: Evaluate here
         
