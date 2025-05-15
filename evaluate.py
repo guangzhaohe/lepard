@@ -12,6 +12,7 @@ from models.loss import MatchMotionLoss
 from lib.tictok import Timers
 from configs.models import architectures
 from torch import optim
+import numpy as np
 
 
 setup_seed(0)
@@ -84,13 +85,30 @@ if __name__ == '__main__':
     config.timers = Timers()
 
     # create dataset and dataloader
-    _, _, test_set = get_datasets(config)
+    # train_set, val_set, test_set = get_datasets(config)
+    neighborhood_limits = np.array([53, 23, 31, 37])  # NOTE: for DFAUST
     # config.train_loader, neighborhood_limits = get_dataloader(train_set,config,shuffle=True)
-    # config.val_loader, _ = get_dataloader(val_set, config, shuffle=False, neighborhood_limits=neighborhood_limits)
-    config.test_loader, _ = get_dataloader(test_set, config, shuffle=False, neighborhood_limits=neighborhood_limits)
+    # config.test_loader, _ = get_dataloader(test_set, config, shuffle=False, neighborhood_limits=neighborhood_limits)
     
     # config.desc_loss = MetricLoss(config)
-    config.desc_loss = MatchMotionLoss (config['train_loss'])
+    config.desc_loss = MatchMotionLoss(config['train_loss'])
+
+    config.train_loader = None
+    config.test_loader = None
+    config.val_loader = None
 
     trainer = get_trainer(config)
+
+    # example_input = next(iter(config.test_loader))
+    inputs = np.load('tmp.npy', allow_pickle=True).item()
+
+    for k, v in inputs.items():
+        if type(v) == list:
+            inputs[k] = [item.to('cuda') for item in v]
+        elif type(v) in [ dict, float, type(None), np.ndarray]:
+            pass
+        else:
+            inputs[k] = v.to('cuda')
+
+    breakpoint()
     trainer.test()

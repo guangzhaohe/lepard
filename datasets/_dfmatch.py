@@ -20,7 +20,7 @@ from datasets.gen_df_train import generate_training_labels, generate_evaluation_
 
 CACHE_DF = True  # TODO: use true for actual training
 NUM_EVAL_FRAME = 24
-NUM_REPEAT = 10  # TODO: set to 10 for normal training
+NUM_REPEAT = 1  # TODO: set to 10 for normal training
 NUM_KNN = 4
 ROOT_DIR_DF = '/home/idarc/hgz/SuperGraph/DeformationPyramid/data/DFAUST'
 

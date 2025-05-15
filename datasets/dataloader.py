@@ -564,6 +564,7 @@ def collate_fn_4dmatch(list_data, config, neighborhood_limits ):
 def calibrate_neighbors(dataset, config, collate_fn, keep_ratio=0.8, samples_threshold=2000):
 
     # From config parameter, compute higher bound of neighbors number in a neighborhood
+    
     hist_n = int(np.ceil(4 / 3 * np.pi * (config.deform_radius + 1) ** 3))
     neighb_hists = np.zeros((config.num_layers, hist_n), dtype=np.int32)
 
@@ -594,24 +595,30 @@ def calibrate_neighbors(dataset, config, collate_fn, keep_ratio=0.8, samples_thr
 
 
 
-def get_datasets(config):
-    if (config.dataset == '3dmatch'):
-        train_set = _3DMatch(config, 'train', data_augmentation=True)
-        val_set = _3DMatch(config, 'val', data_augmentation=False)
-        test_set = _3DMatch(config, 'test', data_augmentation=False)
-    elif(config.dataset == '4dmatch'):
-        train_set = _4DMatch(config, 'train', data_augmentation=True)
-        val_set = _4DMatch(config, 'val', data_augmentation=False)
-        test_set = _4DMatch(config, 'test', data_augmentation=False)
-    elif config.dataset == 'dfmatch':
-        train_set = _DFMatch(config, 'train', data_augmentation=True)
-        val_set = _DFMatch(config, 'val', data_augmentation=False)
-        test_set = _DFMatch(config, 'test', data_augmentation=False)
+def get_datasets(config, only_test=False):
+    if not only_test:
+        if (config.dataset == '3dmatch'):
+            train_set = _3DMatch(config, 'train', data_augmentation=True)
+            val_set = _3DMatch(config, 'val', data_augmentation=False)
+            test_set = _3DMatch(config, 'test', data_augmentation=False)
+        elif(config.dataset == '4dmatch'):
+            train_set = _4DMatch(config, 'train', data_augmentation=True)
+            val_set = _4DMatch(config, 'val', data_augmentation=False)
+            test_set = _4DMatch(config, 'test', data_augmentation=False)
+        elif config.dataset == 'dfmatch':
+            train_set = _DFMatch(config, 'train', data_augmentation=True)
+            val_set = _DFMatch(config, 'val', data_augmentation=False)
+            test_set = _DFMatch(config, 'test', data_augmentation=False)
+        else:
+            raise NotImplementedError
+
+        return train_set, val_set, test_set
     else:
-        raise NotImplementedError
-
-    return train_set, val_set, test_set
-
+        if config.dataset == 'dfmatch':
+            test_set = _DFMatch(config, 'test', data_augmentation=False)
+        else:
+            raise NotImplementedError    
+        return test_set
 
 
 def get_dataloader(dataset, config, shuffle=True, neighborhood_limits=None):
