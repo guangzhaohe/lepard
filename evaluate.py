@@ -213,6 +213,7 @@ if __name__ == '__main__':
             coarse_match_pred = output['coarse_match_pred'].cpu().numpy()
 
             # Landmarks used for N-ICP matching
+            # For N-ICP we actually need the original indices
             src_lm = s_pcd[coarse_match_pred[:, 1]]
             tar_lm = t_pcd[coarse_match_pred[:, 2]]
 
