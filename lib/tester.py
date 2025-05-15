@@ -294,5 +294,7 @@ def get_trainer(config):
         return _3DMatchTester(config)
     elif config.dataset == '4dmatch':
         return _4DMatchTester(config)
+    elif config.dataset == 'dfmatch':
+        return _4DMatchTester(config)
     else:
         raise NotImplementedError

@@ -18,9 +18,9 @@ from datasets.df_utils import DfaustTrain
 from datasets.gen_df_train import generate_training_labels, generate_evaluation_labels
 
 
-CACHE_DF = True  # Use true for actual training
+CACHE_DF = True  # TODO: use true for actual training
 NUM_EVAL_FRAME = 24
-NUM_REPEAT = 10
+NUM_REPEAT = 10  # TODO: set to 10 for normal training
 NUM_KNN = 4
 ROOT_DIR_DF = '/home/idarc/hgz/SuperGraph/DeformationPyramid/data/DFAUST'
 
@@ -31,6 +31,7 @@ class _DFMatch(Dataset):
         super(_DFMatch, self).__init__()
 
         assert split in ['train','val','test']
+        self.split = split
 
         if 'overfit' in config.exp_dir:
             d_slice = config.batch_size
@@ -40,9 +41,9 @@ class _DFMatch(Dataset):
         # self.entries = self.read_entries(  config.split[split] , config.data_root, d_slice=d_slice )
 
         if CACHE_DF:
-            self.data: List = self.cache_data(split, num_repeat=NUM_REPEAT)  # 400 * 10 = 4000
+            self.data: List = self.cache_data(split, num_repeat=NUM_REPEAT if split == 'train' else 1)  # 400 * 10 = 4000
         else:
-            self.data = DfaustTrain(split)
+            self.data = DfaustTrain(root_dir=ROOT_DIR_DF, split='train' if split == 'train' else 'test', max_frame=NUM_EVAL_FRAME)
 
         self.base_dir = config.data_root
         self.data_augmentation = data_augmentation
@@ -69,20 +70,20 @@ class _DFMatch(Dataset):
         df_dataset = self.get_df_dataset(split)
         df_len = len(df_dataset)
         df_total = int(num_repeat * df_len)
-        data = []
+        cache = []
         for i_total in tqdm(range(df_total)):
             i_repeat = i_total % df_len  # Useless
             i_df = i_total // df_len
             data = df_dataset[i_df]
             entry: Dict = generate_training_labels(data, knn=NUM_KNN)
-            data.append(entry)
-        return data
+            cache.append(entry)
+        return cache
 
     def get_df_dataset(self, split):
         # The notion is that for training split we do not need 24 frames for every sample
         # However for evaluation we want the while 24 of them
         return DfaustTrain(
-            root = ROOT_DIR_DF,
+            root_dir = ROOT_DIR_DF,
             split = 'train' if split == 'train' else 'test',
             max_frame = 1 if split == 'train' else NUM_EVAL_FRAME,
         )
@@ -99,7 +100,7 @@ class _DFMatch(Dataset):
         if CACHE_DF:
             return len(self.data)
         else:
-            return int(len(self.data) * NUM_REPEAT)
+            return int(len(self.data) * (NUM_REPEAT if self.split == 'train' else 1))
 
     def __getitem__(self, index, debug=False):
 
@@ -194,13 +195,15 @@ if __name__ == '__main__':
         return '_'.join([str(i) for i in seq])
     yaml.add_constructor('!join', join)
 
-    config = "/home/liyang/workspace/Regformer/configs/train/4dmatch.yaml"
+    config = "/home/idarc/hgz/lepard/configs/test/dfmatch.yaml"
     with open(config,'r') as f:
         config = yaml.load(f, Loader=yaml.Loader)
 
     config = edict(config)
     config.timers=Timers()
-    D = _4DMatch(config, "test")
+    D = _DFMatch(config, "test")
+
+    breakpoint()
 
     for i in range (len(D)):
 

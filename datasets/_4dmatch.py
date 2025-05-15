@@ -80,17 +80,15 @@ class _4DMatch(Dataset):
         tgt_pcd = entry['t_pc']  # n_tar, 3
         correspondences = entry['correspondences'] # obtained with search radius 0.015 m pairs of src-tar pairs
 
-        from cvtb import vis
-        breakpoint()
-        savenp(rot=rot, trans=trans, s2t_flow=s2t_flow, src_pcd=src_pcd, tgt_pcd=tgt_pcd, correspondences=correspondences)
-
+        # from cvtb import vis
+        # breakpoint()
+        # savenp('tmp.npy', rot=rot, trans=trans, s2t_flow=s2t_flow, src_pcd=src_pcd, tgt_pcd=tgt_pcd, correspondences=correspondences)
         src_pcd_deformed = src_pcd + s2t_flow
+
         if "metric_index" in entry:
             metric_index = entry['metric_index'].squeeze()
         else:
             metric_index = None
-
-
 
         # if we get too many points, we do some downsampling
         if (src_pcd.shape[0] > self.max_points):

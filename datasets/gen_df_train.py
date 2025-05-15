@@ -59,8 +59,11 @@ def generate_training_labels(data: Dict, knn: int = 4):
     _, rot, trans = procrustes_alignment(src_pcd, gt_track)
 
     # Calculate residual flow
-    src_pcd_warp = src_pcd @ rot.T + trans
-    s2t_flow = gt_track - src_pcd_warp
+    # NOTE: here the warp is applied to src first before rotating and translating
+    # src_pcd_warp = src_pcd @ rot.T + trans
+    # s2t_flow = gt_track - src_pcd_warp
+    tar_pcd_warp = (gt_track - trans) @ rot
+    s2t_flow = tar_pcd_warp - src_pcd
     
     # Get correspondence, for every point in target get the nearest ones (use knn) in the src
     src_indices = get_knn_in_t(src_pcd, tgt_pcd, knn=knn).flatten()
@@ -72,7 +75,7 @@ def generate_training_labels(data: Dict, knn: int = 4):
     
     return {
         'rot': rot,
-        'trans': trans,
+        'trans': trans[:, None],  # 3, 1
         's2t_flow': s2t_flow,
         's_pc': src_pcd,
         't_pc': tgt_pcd,
