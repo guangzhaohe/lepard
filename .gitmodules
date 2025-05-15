@@ -1,0 +1,3 @@
+[submodule "extern/Nonrigid-ICP-Pytorch"]
+	path = extern/Nonrigid-ICP-Pytorch
+	url = https://github.com/rabbityl/Nonrigid-ICP-Pytorch.git
