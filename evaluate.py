@@ -212,10 +212,17 @@ if __name__ == '__main__':
 
             coarse_match_pred = output['coarse_match_pred'].cpu().numpy()
 
+            # Landmarks used for N-ICP matching
             src_lm = s_pcd[coarse_match_pred[:, 1]]
             tar_lm = t_pcd[coarse_match_pred[:, 2]]
 
-            # vis.pcd(np.stack((src_lm, tar_lm)), fps=1)
+            # Let's make sure landmarks align with original src input and output
+            np.save('tmp.npy', {
+                'og_src': src_pcd_f, 
+                'og_tar': tar_pcd_f, 
+                'src_lm': src_lm, 
+                'tar_lm': tar_lm,
+            })
 
             breakpoint()
             registered_pcds.append(output['registered_pcd'])
