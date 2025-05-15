@@ -21,6 +21,7 @@ from datasets._dfmatch import NUM_KNN, ROOT_DIR_DF
 from tqdm import tqdm
 from models.matching import Matching as CM
 from models.loss import MatchMotionLoss as MML
+from cvtb import vis
 
 
 setup_seed(0)
@@ -199,6 +200,23 @@ if __name__ == '__main__':
             output = trainer.model(data_f_cuda)
             # match_pred, _, _ = CM.get_match(data['conf_matrix_pred'], thr=conf_threshold, mutual=True)
             
+            # From what I guess, `src_ind_coarse`, `tgt_ind_coarse`, `coarse_match_pred`, `s_pcd`, `t_pcd`
+            s_pcd = output['s_pcd'][0].cpu().numpy()
+            t_pcd = output['t_pcd'][0].cpu().numpy()
+
+            # src_ind_coarse = output['src_ind_coarse'].cpu().numpy()
+            # tgt_ind_coarse = output['tgt_ind_coarse'].cpu().numpy()
+
+            # src_coarse = s_pcd[src_ind_coarse]
+            # tgt_coarse = t_pcd[tgt_ind_coarse]
+
+            coarse_match_pred = output['coarse_match_pred'].cpu().numpy()
+
+            src_lm = s_pcd[coarse_match_pred[:, 1]]
+            tar_lm = t_pcd[coarse_match_pred[:, 2]]
+
+            # vis.pcd(np.stack((src_lm, tar_lm)), fps=1)
+
             breakpoint()
             registered_pcds.append(output['registered_pcd'])
             
