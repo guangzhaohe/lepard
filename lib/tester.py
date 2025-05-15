@@ -148,7 +148,6 @@ def blend_anchor_motion (query_loc, reference_loc, reference_flow , knn=3, searc
 
 def compute_nrfmr( match_pred, data, recall_thr=0.04):
 
-
     s_pcd, t_pcd = data['s_pcd'], data['t_pcd']
 
     s_pcd_raw = data ['src_pcd_list']
