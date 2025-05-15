@@ -623,7 +623,7 @@ def get_datasets(config, only_test=False):
     
 def prepare_data(data_batch, config, neighborhood_limits=None):
     collate_fn = partial(collate_fn_4dmatch, config=config['kpfcn_config'], neighborhood_limits=neighborhood_limits)
-    data = collate_fn([data_batch])[0]
+    data = collate_fn([data_batch])
     return data  # Ready for the network
 
 

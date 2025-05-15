@@ -17,7 +17,7 @@ from datasets.df_utils import DfaustTrain
 from datasets.dataloader import prepare_data
 from datasets.gen_df_train import generate_training_labels
 from typing import Dict, List
-from datasets._dfmatch import NUM_KNN
+from datasets._dfmatch import NUM_KNN, ROOT_DIR_DF
 from tqdm import tqdm
 from models.matching import Matching as CM
 from models.loss import MatchMotionLoss as MML
@@ -38,14 +38,36 @@ yaml.add_constructor('!join', join)
 def from_src_tar_to_training_labels(
     src_pcd: np.ndarray, 
     tar_pcd: np.ndarray,
-) -> Dict:
+) -> List:
     tmp_data = {
         'points_mesh': src_pcd,  # n_src, 3
         'points': tar_pcd[None],  # 1, n_tar, 3
         'tracks': src_pcd[None],  # 1, n_src, 3 -> placeholder
     }
-    training_labels = generate_training_labels(tmp_data, knn=NUM_KNN)
-    return training_labels
+    entry = generate_training_labels(tmp_data, knn=NUM_KNN)
+    
+    # from entry to training labels
+    rot = entry['rot']
+    trans = entry['trans']
+    s2t_flow = entry['s2t_flow']
+    src_pcd = entry['s_pc']
+    tgt_pcd = entry['t_pc']
+    correspondences = entry['correspondences'] # obtained with search radius 0.015 m
+    src_pcd_deformed = src_pcd + s2t_flow
+    if "metric_index" in entry:
+        metric_index = entry['metric_index'].squeeze()
+    else:
+        metric_index = None
+
+    if (trans.ndim == 1):
+        trans = trans[:, None]
+
+    src_feats = np.ones_like(src_pcd[:, :1]).astype(np.float32)
+    tgt_feats = np.ones_like(tgt_pcd[:, :1]).astype(np.float32)
+    rot = rot.astype(np.float32)
+    trans = trans.astype(np.float32)
+    
+    return src_pcd, tgt_pcd, src_feats, tgt_feats, correspondences, rot, trans, s2t_flow, metric_index
 
 
 def to_cuda(inputs: Dict, device: str = 'cuda'):
@@ -144,7 +166,10 @@ if __name__ == '__main__':
         else:
             inputs[k] = v.to('cuda')
 
-    df_dataset = DfaustTrain(split='test')
+    df_dataset = DfaustTrain(
+        root_dir=ROOT_DIR_DF,
+        split='test',
+    )
     
     for idx, data_batch in enumerate(tqdm(df_dataset)):
         
@@ -171,7 +196,6 @@ if __name__ == '__main__':
             labels: Dict = from_src_tar_to_training_labels(src_pcd_f, tar_pcd_f)  # Dict to be collated
             data_f = prepare_data(labels, config=config, neighborhood_limits=neighborhood_limits)
             data_f_cuda = to_cuda(data_f)
-            breakpoint()
             output = trainer.model(data_f_cuda)
             # match_pred, _, _ = CM.get_match(data['conf_matrix_pred'], thr=conf_threshold, mutual=True)
             
