@@ -10,6 +10,7 @@ from lib.utils import setup_seed
 from lib.tester import get_trainer
 from models.loss import MatchMotionLoss
 from lib.tictok import Timers
+from time import perf_counter
 from configs.models import architectures
 from torch import optim
 import numpy as np
@@ -28,6 +29,20 @@ from knn_cuda import KNN
 
 
 setup_seed(0)
+
+
+def eval_metric(pred, gt):
+    # F, N, 3
+    ate = torch.abs(pred-gt).mean()
+    l2 = torch.norm(pred-gt,dim=-1)
+
+    a01 = l2 < 0.01  # F, N
+    d01 = torch.sum(a01).float() / (a01.shape[0] * a01.shape[1])
+
+    a02 = l2 < 0.05  # F, N
+    d02 = torch.sum(a02).float() / (a02.shape[0] * a02.shape[1])
+
+    return ate, d01, d02
 
 
 def get_knn(find_in: torch.Tensor, find_for: torch.Tensor, knn: int = 1):
@@ -195,6 +210,8 @@ if __name__ == '__main__':
     incp_cfg.w_arap = 1
     incp_cfg.w_chamfer = 0.1
     incp_cfg.w_depth = 0
+
+    ate, d01, d02, timing = [], [], [], []
     
     for idx, data_batch in enumerate(tqdm(df_dataset)):
         
@@ -208,6 +225,8 @@ if __name__ == '__main__':
         n_f = len(tar_pcds)
         
         registered_pcds = []  # length = n_f
+
+        timing_i = 0.
         
         for f in range(n_f):
             
@@ -222,6 +241,9 @@ if __name__ == '__main__':
             data_f = prepare_data(labels, config=config, neighborhood_limits=neighborhood_limits)
             data_f_cuda = to_cuda(data_f)
             # breakpoint()
+
+            timing_start_i = perf_counter()
+
             output = trainer.model(data_f_cuda)
             # match_pred, _, _ = CM.get_match(data['conf_matrix_pred'], thr=conf_threshold, mutual=True)
             
@@ -245,13 +267,29 @@ if __name__ == '__main__':
             match_lm = torch.stack([match_ind_src, match_ind_tar]).permute(1, 0).cuda()
             registered_pcd = model.register_a_depth_frame(torch.from_numpy(tar_pcd_f).cuda(), landmarks=match_lm)
 
+            timing_end_i = perf_counter()
+            timing_i += timing_end_i - timing_start_i
+
             registered_pcds.append(registered_pcd.detach().cpu().numpy())
             del model
 
-            breakpoint()
+            # breakpoint()
             # registered_pcds.append(output['registered_pcd'])
             
-        # TODO: Evaluate here
         
-    
-    trainer.test()
+        # TODO: Evaluate here
+        ate_i, d01_i, d02_i = eval_metric(
+            torch.from_numpy(np.stack(registered_pcds)).cuda(),
+            torch.from_numpy(gt_tracks).cuda()
+        )
+
+        ate.append(ate_i)
+        d01.append(d01_i)
+        d02.append(d02_i)
+        timing.append(timing_i / n_f)
+
+        print(f'Case {idx}:02d - ate: {ate_i} - d01: {d01_i} - d02: {d02_i} - timing: {timing_i / n_f}')
+
+    num_cases = len(ate)
+    print(f'Average - ate: {sum(ate) / num_cases} - d01: {sum(d01) / num_cases} - d02: {sum(d02) / num_cases} - timing: {sum(timing) / num_cases}')
+
