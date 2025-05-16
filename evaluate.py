@@ -22,9 +22,21 @@ from tqdm import tqdm
 from models.matching import Matching as CM
 from models.loss import MatchMotionLoss as MML
 from cvtb import vis
+from extern.nonrigid_icp_pytorch.model.registration import Registration
+from yacs.config import CfgNode as CN
+from knn_cuda import KNN
 
 
 setup_seed(0)
+
+
+def get_knn(find_in: torch.Tensor, find_for: torch.Tensor, knn: int = 1):
+    # both are N_X x 3 pcds
+    knn = KNN(k=knn, transpose_mode=True)
+    ref = find_in[None]
+    query = find_for[None]
+    dist, indx = knn(ref, query)
+    return indx[0, :, 0]  # N_find_for
 
 
 def join(loader, node):
@@ -171,6 +183,18 @@ if __name__ == '__main__':
         root_dir=ROOT_DIR_DF,
         split='test',
     )
+
+    # NICP config
+    incp_cfg = CN()
+    incp_cfg.iters = 500
+    incp_cfg.gpu_mode = True
+    incp_cfg.lr = 0.5
+    incp_cfg.deformation_model = 'ED'
+    incp_cfg.w_silh = 0.1
+    incp_cfg.w_ldmk = 1
+    incp_cfg.w_arap = 1
+    incp_cfg.w_chamfer = 0.1
+    incp_cfg.w_depth = 0
     
     for idx, data_batch in enumerate(tqdm(df_dataset)):
         
@@ -197,35 +221,35 @@ if __name__ == '__main__':
             labels: Dict = from_src_tar_to_training_labels(src_pcd_f, tar_pcd_f)  # Dict to be collated
             data_f = prepare_data(labels, config=config, neighborhood_limits=neighborhood_limits)
             data_f_cuda = to_cuda(data_f)
+            # breakpoint()
             output = trainer.model(data_f_cuda)
             # match_pred, _, _ = CM.get_match(data['conf_matrix_pred'], thr=conf_threshold, mutual=True)
             
             # From what I guess, `src_ind_coarse`, `tgt_ind_coarse`, `coarse_match_pred`, `s_pcd`, `t_pcd`
-            s_pcd = output['s_pcd'][0].cpu().numpy()
-            t_pcd = output['t_pcd'][0].cpu().numpy()
+            s_pcd = output['s_pcd'][0]
+            t_pcd = output['t_pcd'][0]
 
-            # src_ind_coarse = output['src_ind_coarse'].cpu().numpy()
-            # tgt_ind_coarse = output['tgt_ind_coarse'].cpu().numpy()
+            # breakpoint()
+            # We need s_pcd and t_pcd's indices in input points
+            s_pcd_ind_ori = get_knn(torch.from_numpy(src_pcd_f).cuda(), s_pcd, knn=1)
+            t_pcd_ind_ori = get_knn(torch.from_numpy(tar_pcd_f).cuda(), t_pcd, knn=1)
 
-            # src_coarse = s_pcd[src_ind_coarse]
-            # tgt_coarse = t_pcd[tgt_ind_coarse]
+            coarse_match_pred = output['coarse_match_pred']
+            match_ind_src = s_pcd_ind_ori[coarse_match_pred[:, 1]]
+            match_ind_tar = t_pcd_ind_ori[coarse_match_pred[:, 2]]
 
-            coarse_match_pred = output['coarse_match_pred'].cpu().numpy()
+            # np.save('tmp.npy', [src_pcd_f[match_ind_src.cpu().numpy()], tar_pcd_f[match_ind_tar.cpu().numpy()]])
 
-            # Landmarks used for N-ICP matching
-            src_lm = s_pcd[coarse_match_pred[:, 1]]
-            tar_lm = t_pcd[coarse_match_pred[:, 2]]
+            # register w/ nicp
+            model = Registration(src_pcd_f, config=incp_cfg)
+            match_lm = torch.stack([match_ind_src, match_ind_tar]).permute(1, 0).cuda()
+            registered_pcd = model.register_a_depth_frame(torch.from_numpy(tar_pcd_f).cuda(), landmarks=match_lm)
 
-            # Let's make sure landmarks align with original src input and output
-            # np.save('tmp.npy', {
-            #     'og_src': src_pcd_f, 
-            #     'og_tar': tar_pcd_f, 
-            #     'src_lm': src_lm, 
-            #     'tar_lm': tar_lm,
-            # })
+            registered_pcds.append(registered_pcd.detach().cpu().numpy())
+            del model
 
             breakpoint()
-            registered_pcds.append(output['registered_pcd'])
+            # registered_pcds.append(output['registered_pcd'])
             
         # TODO: Evaluate here
         

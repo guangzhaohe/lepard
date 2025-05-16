@@ -26,7 +26,7 @@ class Registration():
 
     def __init__(self, src_pcd, config):
         # n_src, 3
-
+        config.device = 'cuda'
         self.device = config.device
 
         self.deformation_model = config.deformation_model
@@ -64,7 +64,8 @@ class Registration():
         # self.visualize_results(self.tgt_pcd)
         warped_pcd = self.solve(landmarks=landmarks)
         # self.visualize_results( self.tgt_pcd, warped_pcd)
-        breakpoint()
+        return warped_pcd
+        # breakpoint()
 
     def solve(self, **kwargs ):
 
