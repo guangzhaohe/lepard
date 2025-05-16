@@ -267,6 +267,7 @@ def silhouette_cost(x, y):
 
 def landmark_cost(x, y, landmarks):
     # landmark is in x and y index space
+    # breakpoint()
     x = x [ landmarks[:, 0] ]  # n_lm, 3
     y = y [ landmarks[:, 1] ]
     loss = torch.mean(

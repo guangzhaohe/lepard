@@ -27,7 +27,7 @@ def build_deformation_graph(
     Returns:
         graph_data: dict with graph_nodes, graph_edges, graph_edges_weights, point_anchors, point_weights
     """
-    device = source_pcd.device
+    # device = source_pcd.device
     N = source_pcd.shape[0]
 
     # 1. Farthest Point Sampling (FPS)
@@ -43,27 +43,26 @@ def build_deformation_graph(
     graph_dist = graph_dist[:, 1:]
 
     # 3. Edge weights using RBF
-    graph_edges_weights = torch.exp(-graph_dist ** 2 / (2 * rbf_sigma ** 2))  # (E,)
-    graph_edges_weights = graph_edges_weights / (graph_edges_weights.sum() + 1e-8)
+    graph_edges_weights = np.exp(-graph_dist ** 2 / (2 * rbf_sigma ** 2))  # (E,)
+    graph_edges_weights = graph_edges_weights / (graph_edges_weights.sum(axis=-1, keepdims=True) + 1e-8)
 
     # 4. Anchor assignment for all points
     anchors, anchor_dist = get_knn(graph_nodes, source_pcd, knn=k_anchor)  # here the anchors index is in graph_nodes space
-    anchors[anchor_dist[:, 0] < 1e-5] = -1  # avoid self assignment
-    breakpoint()
+    self_indices = anchor_dist[:, 0] < 1e-5
+    anchors[self_indices, 0] = -1  # avoid self assignment
     for i in range(len(anchors)):  # move the placeholder to the back
         if anchors[i][0] == -1:
             anchors[i][:k_anchor - 1] = anchors[i][1:]
             anchor_dist[i][:k_anchor - 1] = anchor_dist[i][1:]
             anchors[i][-1] = -1
             anchor_dist[i][-1] = 1e10  # a large number
-    breakpoint()
 
     # Anchor weights using RBF
-    weights = torch.exp(-anchor_dist / (2 * rbf_sigma ** 2))
-    weights = weights / (weights.sum(dim=1, keepdim=True) + 1e-8)  # normalize
+    weights = np.exp(-anchor_dist / (2 * rbf_sigma ** 2))
+    weights = weights / (weights.sum(axis=1, keepdims=True) + 1e-8)  # normalize
 
     return {
-        'graph_nodes': torch.from_numpy(graph_nodes).long(),
+        'graph_nodes': torch.from_numpy(graph_nodes),
         'graph_edges': torch.from_numpy(graph_edges),
         'graph_edges_weights': torch.from_numpy(graph_edges_weights),
         'point_anchors': torch.from_numpy(anchors).long(),
