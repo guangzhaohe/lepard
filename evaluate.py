@@ -234,7 +234,8 @@ if __name__ == '__main__':
                 src_pcd_f = src_pcd
                 tar_pcd_f = tar_pcds[f]
             else:  # src is now from previous estimations
-                src_pcd_f = registered_pcds[-1]
+                # src_pcd_f = registered_pcds[-1]
+                src_pcd_f = src_pcd  # NOTE: No-Chaining
                 tar_pcd_f = tar_pcds[f]
                 
             labels: Dict = from_src_tar_to_training_labels(src_pcd_f, tar_pcd_f)  # Dict to be collated

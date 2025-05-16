@@ -119,7 +119,7 @@ class Registration():
                 err_ldmk * self.config.w_ldmk + \
                 cd * self.config.w_chamfer
 
-            print( i, loss)
+            # print( i, loss)
             if loss.item() < 1e-7:
                 break
 
